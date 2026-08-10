@@ -201,4 +201,5 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true
   }
+  base: '/DEMO2-Files/',
 });
