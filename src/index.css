@@ -1,0 +1,523 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+@variant light (&:where(.light, .light *));
+
+/* Primary Action Buttons System */
+.btn-primary {
+  background-color: #cf8730 !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(207, 135, 48, 0.28) !important;
+}
+
+.btn-primary:hover {
+  background-color: #b87528 !important;
+}
+
+html.dark .btn-primary,
+body.dark .btn-primary {
+  background-color: #cf8730 !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(207, 135, 48, 0.35) !important;
+}
+
+html.dark .btn-primary:hover,
+body.dark .btn-primary:hover {
+  background-color: #b87528 !important;
+}
+
+@theme {
+  --animate-page-slide-up: pageSlideUp 220ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  --animate-modal-pop: modalPop 200ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  --animate-card-stagger: cardStagger 300ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+
+  @keyframes pageSlideUp {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes modalPop {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes cardStagger {
+    0% {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}
+
+/* 100% Full Dark Mode Design System Tokens */
+:root {
+  --text-50: #0f172a;
+  --text-100: #1e293b;
+  --text-200: #334155;
+  --text-300: #475569;
+  --text-400: #64748b;
+  --text-500: #94a3b8;
+  --text-600: #cbd5e1;
+  --text-700: #e2e8f0;
+  --text-800: #f1f5f9;
+  --text-900: #f8fafc;
+  --text-950: #ffffff;
+
+  --background-50: #0b0e1b;
+  --background-100: #0d1126;
+  --background-200: #12162b;
+  --background-300: #161b33;
+  --background-400: #1c2242;
+  --background-500: #232a50;
+  --background-600: #2d3663;
+  --background-700: #39447a;
+  --background-800: #465391;
+  --background-900: #5765aa;
+  --background-950: #6a79c4;
+
+  --primary-50: #fffbeb;
+  --primary-100: #fef3c7;
+  --primary-200: #fde68a;
+  --primary-300: #fcd34d;
+  --primary-400: #fbbf24;
+  --primary-500: #cf8730;
+  --primary-600: #b87528;
+  --primary-700: #92581d;
+  --primary-800: #74431b;
+  --primary-900: #60371a;
+  --primary-950: #371b0b;
+
+  --color-bg: #0b0e1b;
+  --color-surface: #12162b;
+  --color-border: #1e2540;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #94a3b8;
+  --sidebar-bg: #12162b;
+  --sidebar-border: #1e2540;
+  --sidebar-text: #ffffff;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  max-height: 100vh;
+  overflow: hidden !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Light Theme Styling (Original App Palette - 100% Crisp & Clean) */
+html.light,
+html.light body,
+html.light #root,
+body.light-mode,
+body.light {
+  background-color: #eee0d3 !important;
+  color: #161B26 !important;
+}
+
+html.light .bg-white,
+html.light div.bg-white,
+html.light section.bg-white,
+html.light aside,
+html.light header {
+  background-color: #ffffff !important;
+  color: #161B26 !important;
+  border-color: #e2cbb6 !important;
+}
+
+html.light .bg-\[\#F5F6FA\],
+html.light [class*="bg-[#F5F6FA]"],
+html.light .bg-slate-50,
+html.light .bg-slate-100 {
+  background-color: #F5F6FA !important;
+  color: #161B26 !important;
+  border-color: #e2cbb6 !important;
+}
+
+html.light [class*="border-"],
+html.light div,
+html.light section,
+html.light aside,
+html.light header,
+html.light table,
+html.light tr,
+html.light td,
+html.light th {
+  border-color: #e2cbb6 !important;
+}
+
+html.light table thead tr {
+  background-color: #F5F6FA !important;
+  color: #8A8FA3 !important;
+}
+
+html.light table tbody tr {
+  background-color: #ffffff !important;
+  color: #161B26 !important;
+}
+
+/* Dark Theme Overrides (Applied ONLY when .dark is active) */
+html.dark,
+html.dark body,
+html.dark #root,
+body.dark-mode,
+body.dark {
+  background-color: #0b0e1b !important;
+  color: #ffffff !important;
+}
+
+html.dark .bg-white,
+html.dark div[class*="bg-white"],
+html.dark section[class*="bg-white"],
+html.dark aside,
+html.dark header {
+  background-color: #12162b !important;
+  color: #ffffff !important;
+  border-color: #1e2540 !important;
+}
+
+/* Preserve translucent overlays in Dark Mode */
+html.dark [class*="bg-white/5"],
+html.dark [class*="bg-white/10"],
+html.dark [class*="bg-white/15"],
+html.dark [class*="bg-white/20"],
+html.dark [class*="bg-white/25"],
+html.dark [class*="bg-white/30"],
+html.dark [class*="bg-white/40"] {
+  background-color: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+}
+
+/* Force dark fill on subtle background panels and pills */
+html.dark .bg-slate-50,
+html.dark .bg-slate-100,
+html.dark .bg-slate-200,
+html.dark [class*="bg-slate-50"],
+html.dark [class*="bg-slate-100"],
+html.dark [class*="bg-slate-200"],
+html.dark [class*="bg-[#F5F6FA]"],
+html.dark [class*="bg-[#FAFBFD]"],
+html.dark [class*="bg-[#F8F9FC]"],
+html.dark [class*="bg-[#f4e7d7]"],
+html.dark [class*="bg-[#eee0d3]"] {
+  background-color: #181d35 !important;
+  color: #ffffff !important;
+}
+
+html.dark .stat-card-badge {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+html.dark .border-none,
+html.dark .border-0,
+html.dark [class*="border-none"],
+html.dark [class*="border-0"] {
+  border: none !important;
+  border-width: 0 !important;
+}
+
+html.dark *,
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark [class*="border-slate-"],
+html.dark [class*="border-[#EEF0F5]"],
+html.dark [class*="border-[#e2cbb6]"] {
+  border-color: #1e2540;
+}
+
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700,
+html.dark [class*="text-[#161B26]"],
+html.dark [class*="text-[#241b0f]"] {
+  color: #ffffff !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-slate-400,
+html.dark [class*="text-[#8A8FA3]"] {
+  color: #94a3b8 !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: #181d35 !important;
+  color: #ffffff !important;
+  border-color: #272f50 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+html.dark [role="dialog"],
+html.dark .modal-content {
+  background-color: #12162b !important;
+  border-color: #1e2540 !important;
+  color: #ffffff !important;
+}
+
+html.dark table,
+html.dark thead,
+html.dark tbody,
+html.dark th,
+html.dark td {
+  border-color: #1e2540 !important;
+}
+
+html.dark thead,
+html.dark th {
+  background-color: #161b33 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark tr:hover {
+  background-color: #1c2242 !important;
+}
+
+/* Dark Mode Status Badges & Pills Overrides */
+html.dark .bg-indigo-50,
+html.dark [class*="bg-indigo-"] {
+  background-color: rgba(99, 102, 241, 0.2) !important;
+  color: #a5b4fc !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+html.dark .bg-emerald-100,
+html.dark .bg-emerald-50,
+html.dark [class*="bg-emerald-"] {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+html.dark .bg-amber-100,
+html.dark .bg-amber-50,
+html.dark [class*="bg-amber-"] {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+html.dark .bg-rose-100,
+html.dark .bg-rose-50,
+html.dark [class*="bg-rose-"] {
+  background-color: rgba(244, 63, 94, 0.2) !important;
+  color: #f87171 !important;
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+
+/* Active Button Click Micro-Animation (scale 0.97 ~100ms ease-out) */
+button:active {
+  transform: scale(0.97) !important;
+  transition: transform 100ms ease-out !important;
+}
+
+/* Keyframe CSS Classes */
+.animate-page-slide-up {
+  animation: pageSlideUp 220ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.animate-modal-pop {
+  animation: modalPop 200ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.animate-card-stagger {
+  animation: cardStagger 300ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* Staggered Delay Utilities */
+.delay-0 { animation-delay: 0ms; }
+.delay-50 { animation-delay: 50ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+
+/* Hide browser native number input spinner arrows everywhere */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Remove black focus outlines and border boxes on click for all Recharts SVG components & contain overflow */
+.recharts-wrapper,
+.recharts-wrapper *,
+.recharts-surface,
+.recharts-surface *,
+.recharts-layer,
+.recharts-layer *,
+.recharts-responsive-container,
+.recharts-responsive-container *,
+svg.recharts-surface,
+svg.recharts-surface * {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.recharts-responsive-container,
+.recharts-wrapper,
+svg.recharts-surface {
+  overflow: hidden !important;
+}
+
+/* Completely remove vertical cursor lines and crosshairs cutting through charts */
+.recharts-tooltip-cursor,
+.recharts-crosshair,
+line.recharts-tooltip-cursor {
+  display: none !important;
+  stroke: transparent !important;
+  opacity: 0 !important;
+}
+
+@keyframes popupFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    box-shadow: 0 12px 32px rgba(207, 135, 48, 0.25);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 18px 40px rgba(207, 135, 48, 0.45);
+  }
+}
+
+.animate-popup-float {
+  animation: popupFloat 3s ease-in-out infinite;
+}
+
+@keyframes chatSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-chatSlideUp {
+  animation: chatSlideUp 300ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+*:focus {
+  outline: none !important;
+}
+
+/* Ultra-Smooth Organic animation & soft ambient glow for chart bar sticks on hover */
+.recharts-bar-rectangle,
+.recharts-bar-rectangles rect,
+.recharts-bar-rectangle path,
+.recharts-layer rect,
+.recharts-layer path {
+  transform-origin: bottom center;
+  transform-box: fill-box;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), fill 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease !important;
+  cursor: pointer;
+}
+
+.recharts-bar-rectangle:hover,
+.recharts-bar-rectangles rect:hover,
+.recharts-bar-rectangle path:hover,
+.recharts-layer rect:hover,
+.recharts-layer path:hover {
+  transform: scaleY(1.04) translateY(-3px);
+  filter: drop-shadow(0px 8px 20px rgba(204, 156, 98, 0.28)) brightness(1.02);
+}
+
+@layer utilities {
+  .chat-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(207, 135, 48, 0.4) transparent;
+  }
+  .chat-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .chat-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .chat-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(207, 135, 48, 0.35);
+    border-radius: 9999px;
+    transition: background-color 0.2s ease;
+  }
+  .chat-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(207, 135, 48, 0.75);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(207, 135, 48, 0.25);
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(207, 135, 48, 0.4);
+  }
+
+  .hide-native-date-icon::-webkit-calendar-picker-indicator {
+    display: none !important;
+    -webkit-appearance: none !important;
+    opacity: 0 !important;
+  }
+}
+
+/* True Liquid Clip Mask View Transition Rules */
+html {
+  view-transition-name: root;
+}
+
+::view-transition,
+::view-transition-group(root),
+::view-transition-image-pair(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+  pointer-events: none !important;
+}
+
+::view-transition-old(root) {
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+::view-transition-new(root) {
+  z-index: 99999 !important;
+  pointer-events: none !important;
+}

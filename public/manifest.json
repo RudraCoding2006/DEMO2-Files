@@ -1,0 +1,18 @@
+{
+  "short_name": "Saheb ERP",
+  "name": "Saheb Paper Mill ERP DEMO2",
+  "icons": [
+    {
+      "src": "/saheb-logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0b0e1b",
+  "theme_color": "#cf8730",
+  "display": "standalone",
+  "orientation": "any",
+  "description": "Complete Paper Mill Operations & ERP Management System"
+}

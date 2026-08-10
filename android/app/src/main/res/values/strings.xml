@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Saheb Paper Mill ERP</string>
+    <string name="title_activity_main">Saheb Paper Mill ERP</string>
+    <string name="package_name">com.saheb.papermill.demo2</string>
+    <string name="custom_url_scheme">com.saheb.papermill.demo2</string>
+</resources>

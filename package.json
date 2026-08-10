@@ -1,0 +1,75 @@
+{
+  "name": "demo2-files",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite\" \"electron . --dev\"",
+    "electron:pack": "vite build && npx electron-packager . \"Saheb Paper Mill ERP DEMO2\" --platform=win32 --arch=x64 --out=dist-electron --ignore=\"^(dist-electron|android)\" --overwrite",
+    "electron:build": "vite build && electron-builder --win",
+    "cap:sync": "vite build && npx cap sync android",
+    "cap:open": "npx cap open android"
+  },
+  "build": {
+    "appId": "com.saheb.papermill.demo2",
+    "productName": "Saheb Paper Mill ERP DEMO2",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "public/**/*"
+    ],
+    "win": {
+      "target": [
+        "dir",
+        "portable"
+      ],
+      "verifyUpdateCodeSignature": false,
+      "icon": "public/saheb-logo.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@zxing/library": "^0.23.0",
+    "clsx": "^2.1.1",
+    "html5-qrcode": "^2.3.8",
+    "jspdf": "^4.2.1",
+    "jsqr": "^1.4.0",
+    "lucide-react": "^1.25.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "recharts": "^3.9.2",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.0",
+    "@rolldown/binding-win32-x64-msvc": "^1.2.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "@vitejs/plugin-react": "^6.0.3",
+    "concurrently": "^10.0.4",
+    "cross-env": "^10.1.0",
+    "electron": "^43.2.0",
+    "electron-builder": "^24.13.3",
+    "oxlint": "^1.71.0",
+    "vite": "^8.1.1"
+  }
+}
