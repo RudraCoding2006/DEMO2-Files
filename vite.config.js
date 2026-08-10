@@ -189,7 +189,7 @@ ${erpContext}`;
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
+  base: '/DEMO2-Files/',
   plugins: [react(), tailwindcss(), apiSyncPlugin(), apiChatPlugin()],
   server: {
     allowedHosts: true,
@@ -201,5 +201,4 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true
   }
-  base: '/DEMO2-Files/',
 });
