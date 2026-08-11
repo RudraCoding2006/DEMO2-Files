@@ -62,6 +62,8 @@ export const DispatchModule = ({ state }) => {
     setIsModalOpen(false);
   };
 
+  const isReadOnly = state?.activeRole === 'guest_viewer' || state?.users?.find(u => u.id === state.activeUserId)?.isReadOnly;
+
   return (
     <div className="space-y-6">
       {/* Top Banner Stat Cards */}
@@ -96,8 +98,18 @@ export const DispatchModule = ({ state }) => {
           </div>
 
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl bg-[#cf8730] text-white hover:bg-[#b87e47] font-extrabold text-xs shadow-md shadow-[#cf8730]/25 transition-all cursor-pointer min-h-[44px]"
+            type="button"
+            disabled={isReadOnly}
+            onClick={() => {
+              if (isReadOnly) return;
+              setIsModalOpen(true);
+            }}
+            className={`flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl text-white font-extrabold text-xs shadow-md transition-all min-h-[44px] ${
+              isReadOnly
+                ? 'bg-[#cf8730]/60 cursor-not-allowed opacity-75'
+                : 'bg-[#cf8730] hover:bg-[#b87e47] active:scale-95 cursor-pointer shadow-[#cf8730]/25'
+            }`}
+            title={isReadOnly ? "🔒 Read-Only Guest Mode: Action disabled for Viewers" : "New Dispatch & PDF Receipt"}
           >
             <Plus className="w-4 h-4" />
             <span>+ New Dispatch & PDF Receipt</span>

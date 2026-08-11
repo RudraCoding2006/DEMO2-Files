@@ -22,7 +22,7 @@ export const MODULES = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
   { id: 'raw-material', name: 'Raw Material Stock', icon: Boxes },
   { id: 'pulp-mill', name: 'Pulp Mill', icon: Factory },
-  { id: 'machine', name: 'Paper Machine', icon: Cog },
+  { id: 'machine', name: 'Plant Manager', icon: Cog },
   { id: 'rewinder', name: 'Rewinder', icon: RotateCw },
   { id: 'boiler', name: 'Boiler', icon: Flame },
   { id: 'etp', name: 'ETP', icon: Droplets },

@@ -20,14 +20,19 @@ import {
   Square,
   Activity,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Zap,
+  UserCheck,
+  RefreshCw,
+  SlidersHorizontal,
+  Plus
 } from 'lucide-react';
 
 import { ConfirmationModal } from '../common/ConfirmationModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
 
 export const UserManagementModal = ({ isOpen, onClose, state }) => {
-  const [activeTab, setActiveTab] = useState('list'); // 'list' | 'add' | 'edit' | 'audit'
+  const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'list' | 'add' | 'edit' | 'audit'
   const [targetResetWorker, setTargetResetWorker] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [auditFilter, setAuditFilter] = useState('all'); // 'all' | 'login' | 'password_change' | 'permission_change'
@@ -51,11 +56,11 @@ export const UserManagementModal = ({ isOpen, onClose, state }) => {
     name: '',
     username: '',
     password: '',
-    roleId: 'machine',
+    roleId: 'plant_manager',
     email: '',
     phone: '',
     status: 'active',
-    allowedModules: ['dashboard', 'machine', 'rewinder']
+    allowedModules: ['dashboard', 'raw-material', 'pulp-mill']
   });
 
   const users = state?.users || [];
@@ -89,11 +94,11 @@ export const UserManagementModal = ({ isOpen, onClose, state }) => {
       name: '',
       username: '',
       password: 'pass@2026',
-      roleId: 'machine',
+      roleId: 'plant_manager',
       email: '',
       phone: '',
       status: 'active',
-      allowedModules: ['dashboard', 'machine']
+      allowedModules: ['dashboard', 'raw-material', 'pulp-mill', 'machine', 'rewinder', 'boiler', 'etp', 'electricity', 'pending-order', 'finish-stock', 'dispatch', 'store', 'reports']
     });
     setSelectedUser(null);
     setActiveTab('add');
@@ -106,13 +111,64 @@ export const UserManagementModal = ({ isOpen, onClose, state }) => {
       name: user.name || '',
       username: user.username || '',
       password: user.password || '',
-      roleId: user.roleId || 'machine',
+      roleId: user.roleId || 'plant_manager',
       email: user.email || '',
       phone: user.phone || '',
       status: user.status || 'active',
       allowedModules: user.allowedModules || ['dashboard']
     });
     setActiveTab('edit');
+  };
+
+  const handleToggleWorkerPermission = (targetUserId, modId) => {
+    const targetUser = users.find(u => u.id === targetUserId);
+    if (!targetUser) return;
+    const current = targetUser.allowedModules || [];
+    const isChecked = current.includes(modId);
+    let nextModules = [];
+    if (isChecked) {
+      nextModules = current.filter(id => id !== modId);
+    } else {
+      nextModules = [...current, modId];
+    }
+    store.updateUser(targetUserId, { allowedModules: nextModules });
+    const modObj = MODULES.find(m => m.id === modId);
+    store.showToast({
+      title: `${isChecked ? 'Removed' : 'Granted'} "${modObj?.name || modId}" permission for ${targetUser.name}`,
+      type: 'info'
+    });
+  };
+
+  const handleApplyPulperAbsentPreset = () => {
+    const dispatcher = users.find(u => u.id === 'usr-4' || u.roleId === 'dispatch');
+    if (!dispatcher) return;
+    const currentMods = dispatcher.allowedModules || ['dashboard', 'pending-order', 'finish-stock', 'dispatch'];
+    const updatedMods = Array.from(new Set([...currentMods, 'pulp-mill', 'raw-material']));
+    store.updateUser(dispatcher.id, { allowedModules: updatedMods });
+    store.showToast({
+      title: `⚡ Daily Substitute Active: Granted Pulp Mill & Raw Material Stock permissions to Dispatcher ${dispatcher.name}!`,
+      type: 'info'
+    });
+  };
+
+  const handleResetShiftDefaults = () => {
+    const defaultMap = {
+      'usr-1': ['dashboard', 'raw-material', 'pulp-mill', 'machine', 'rewinder', 'boiler', 'etp', 'electricity', 'pending-order', 'finish-stock', 'dispatch', 'store', 'reports'],
+      'usr-2': ['dashboard', 'raw-material', 'pulp-mill', 'machine', 'rewinder', 'boiler', 'etp', 'electricity', 'pending-order', 'finish-stock', 'dispatch', 'store', 'reports'],
+      'usr-3': ['dashboard', 'raw-material', 'pulp-mill'],
+      'usr-4': ['dashboard', 'pending-order', 'finish-stock', 'dispatch'],
+      'usr-5': ['dashboard', 'raw-material', 'store'],
+      'usr-6': ['dashboard', 'raw-material', 'pulp-mill', 'machine', 'rewinder', 'boiler', 'etp', 'electricity', 'pending-order', 'finish-stock', 'dispatch', 'store', 'reports']
+    };
+    users.forEach(u => {
+      if (defaultMap[u.id]) {
+        store.updateUser(u.id, { allowedModules: defaultMap[u.id] });
+      }
+    });
+    store.showToast({
+      title: `↺ Reset all 5 factory operators to standard shift roles!`,
+      type: 'info'
+    });
   };
 
   const handleToggleModulePermission = (modId) => {
@@ -236,6 +292,17 @@ export const UserManagementModal = ({ isOpen, onClose, state }) => {
         <div className="p-3 bg-[#F5F6FA] border-b border-[#EEF0F5] flex items-center justify-between gap-2 shrink-0 flex-wrap">
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setActiveTab('matrix')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'matrix'
+                  ? 'bg-[#cf8730] text-white shadow-md shadow-[#cf8730]/25'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 shadow-2xs'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-white" />
+              Roles & Permissions Matrix
+            </button>
+            <button
               onClick={() => setActiveTab('list')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'list'
@@ -255,7 +322,7 @@ export const UserManagementModal = ({ isOpen, onClose, state }) => {
               }`}
             >
               <UserPlus className="w-4 h-4 text-[#1FCB79]" />
-              Add New Worker
+              Add Worker
             </button>
             <button
               onClick={() => setActiveTab('audit')}
@@ -270,12 +337,12 @@ export const UserManagementModal = ({ isOpen, onClose, state }) => {
             </button>
           </div>
 
-          {(activeTab === 'list' || activeTab === 'audit') && (
+          {(activeTab === 'matrix' || activeTab === 'list' || activeTab === 'audit') && (
             <div className="relative shrink-0">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder={activeTab === 'list' ? 'Search workers...' : 'Search security logs...'}
+                placeholder={activeTab === 'matrix' ? 'Filter worker permissions...' : activeTab === 'list' ? 'Search workers...' : 'Search security logs...'}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="pl-8 pr-3 py-1.5 bg-white border-0 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#cf8730] w-44 sm:w-56 shadow-2xs"
@@ -286,6 +353,154 @@ export const UserManagementModal = ({ isOpen, onClose, state }) => {
 
         {/* Scrollable Content Body with min-h-0 for proper flex scroll */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 custom-scrollbar min-h-0">
+          {/* TAB 0: ROLES & PERMISSIONS MATRIX (ADMIN CONTROL) */}
+          {activeTab === 'matrix' && (
+            <div className="space-y-5 animate-in fade-in">
+              {/* Daily Shift Substitution Presets Banner Card */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#12162B] via-[#181D35] to-[#1C2237] text-white border border-[#262D4A] shadow-md space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-[#cf8730]/20 text-[#cf8730] flex items-center justify-center font-bold">
+                      <Zap className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm text-white flex items-center gap-2">
+                        Daily Worker Role & Shift Substitution Control
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        Admin can dynamically assign or substitute worker roles for shift coverage (e.g. Pulper absent today)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={handleApplyPulperAbsentPreset}
+                      className="px-3.5 py-2 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-extrabold text-xs shadow-md flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                      title="Pulper absent today -> Grant Pulp Mill & Raw Material permissions to Dispatcher Vikram Singh"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200" />
+                      Pulper Absent Today ➔ Delegate to Dispatcher
+                    </button>
+                    <button
+                      onClick={handleResetShiftDefaults}
+                      className="px-3 py-2 rounded-xl bg-[#252D48] hover:bg-[#2F395A] text-slate-300 font-bold text-xs border border-[#374268] flex items-center gap-1 transition-all cursor-pointer"
+                      title="Reset all 7 worker roles to factory shift defaults"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Reset Shift Defaults
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Factory Workers Matrix Cards */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+                    {users.length} Active Factory Workers • Click buttons to grant / revoke permissions
+                  </span>
+                  <span className="text-[11px] font-semibold text-[#cf8730]">
+                    Theme Color Highlighted Buttons (Amber = Active ON)
+                  </span>
+                </div>
+
+                <div className="space-y-3.5">
+                  {filteredUsers.map(u => {
+                    const isAdminUser = u.roleId === 'admin';
+                    const allowedMods = u.allowedModules || [];
+
+                    return (
+                      <div
+                        key={u.id}
+                        className="p-4 rounded-2xl bg-white border border-[#EEF0F5] shadow-xs hover:shadow-md transition-all space-y-3"
+                      >
+                        {/* Worker Header Info & Actions */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-xs ${
+                              isAdminUser ? 'bg-[#cf8730] text-white' : 'bg-slate-100 text-slate-800 border border-slate-200'
+                            }`}>
+                              {u.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-extrabold text-sm text-[#161B26]">{u.name}</h4>
+                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-[10px] font-bold">
+                                  {u.workerId}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold">
+                                  Active
+                                </span>
+                              </div>
+                              <p className="text-xs text-[#cf8730] font-bold mt-0.5">{u.roleName}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-extrabold px-3 py-1 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
+                              {allowedMods.length} / {MODULES.length} Modules Active
+                            </span>
+                            <button
+                              onClick={() => {
+                                store.setActiveUser(u.id);
+                                onClose();
+                                store.showToast({
+                                  title: `Simulating logged in worker: “${u.name}” (${u.roleName})`,
+                                  actionText: 'View Navigation'
+                                });
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                                state.activeUserId === u.id
+                                  ? 'bg-[#12162B] text-white shadow-xs'
+                                  : 'bg-[#F5F6FA] text-slate-700 hover:bg-[#cf8730] hover:text-white'
+                              }`}
+                            >
+                              {state.activeUserId === u.id ? 'Simulating Current User' : 'Simulate Worker Login'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Interactive Dynamic Permission Buttons Grid */}
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider">
+                            Toggle Module Permissions for {u.name}:
+                          </p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                            {MODULES.map(m => {
+                              const isAllowed = allowedMods.includes(m.id);
+                              const Icon = m.icon;
+
+                              return (
+                                <button
+                                  type="button"
+                                  key={m.id}
+                                  onClick={() => handleToggleWorkerPermission(u.id, m.id)}
+                                  className={`flex items-center gap-2 p-2.5 rounded-xl text-left text-xs transition-all cursor-pointer font-bold ${
+                                    isAllowed
+                                      ? 'bg-[#cf8730] text-white border-2 border-[#f5a742] shadow-md shadow-[#cf8730]/20 scale-[1.02]'
+                                      : 'bg-[#F5F6FA] text-slate-500 border border-slate-200/80 hover:border-[#cf8730] hover:text-slate-800 opacity-60 hover:opacity-100'
+                                  }`}
+                                >
+                                  {isAllowed ? (
+                                    <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
+                                  ) : (
+                                    <Plus className="w-4 h-4 text-slate-400 shrink-0" />
+                                  )}
+                                  <span className="truncate">{m.name}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: WORKERS LIST */}
           {activeTab === 'list' && (
             <div className="space-y-4">

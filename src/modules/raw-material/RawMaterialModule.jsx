@@ -8,6 +8,7 @@ import { formatKgOrTon, formatDateDisplay } from '../../utils/formatters';
 import { Plus, Boxes, AlertTriangle, ArrowUpRight, Filter, X } from 'lucide-react';
 
 export const RawMaterialModule = ({ state }) => {
+  const isReadOnly = state?.activeRole === 'guest_viewer' || state?.users?.find(u => u.id === state.activeUserId)?.isReadOnly;
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inwardForm, setInwardForm] = useState({
@@ -151,13 +152,20 @@ export const RawMaterialModule = ({ state }) => {
           </div>
 
           {/* Action Button */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-bold text-xs transition-all shadow-md shadow-[#cf8730]/20 min-h-[44px] cursor-pointer active:scale-95 shrink-0"
-          >
-            <Plus className="w-4 h-4 text-white" />
-            + Inward Entry (Manual Add)
-          </button>
+          {isReadOnly ? (
+    <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-xs font-bold shrink-0">
+      <AlertTriangle className="w-4 h-4 text-amber-600" />
+      <span>🔒 Read-Only Guest Mode</span>
+    </div>
+  ) : (
+    <button
+      onClick={() => setIsModalOpen(true)}
+      className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-bold text-xs transition-all shadow-md shadow-[#cf8730]/20 min-h-[44px] cursor-pointer active:scale-95 shrink-0"
+    >
+      <Plus className="w-4 h-4 text-white" />
+      + Inward Entry (Manual Add)
+    </button>
+  )}
         </div>
 
         {/* 4-Card Mini KPI Summary Bar */}

@@ -10,6 +10,8 @@ export const RewinderModule = ({ state }) => {
   const selectedDate = state.selectedDate;
   const reels = (state.rewinderReels || []).filter(r => r.date === selectedDate);
 
+  const isReadOnly = state?.activeRole === 'guest_viewer' || state?.users?.find(u => u.id === state.activeUserId)?.isReadOnly;
+
   // Stats
   const totalReelWeightKg = reels.reduce((sum, r) => sum + Number(r.weightKg || 0), 0);
   const totalBrokeKg = reels.reduce((sum, r) => sum + Number(r.brokeKg || 0), 0);
@@ -204,13 +206,20 @@ export const RewinderModule = ({ state }) => {
             <p className="text-xs text-[#8A8FA3]">Date: {formatDateDisplay(selectedDate)} &bull; Broke automatically increases Raw Material Stock (Rule 6)</p>
           </div>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl bg-[#cf8730] hover:bg-[#b87528] text-white font-extrabold text-xs shadow-md shadow-[#cf8730]/25 transition-all min-h-[44px] cursor-pointer active:scale-95 shrink-0"
-          >
-            <Plus className="w-4 h-4 text-white" />
-            + Add Reel Entry
-          </button>
+          {isReadOnly ? (
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold shrink-0">
+              <AlertCircle className="w-4 h-4 text-amber-600" />
+              <span>🔒 Read-Only Guest Mode</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl bg-[#cf8730] hover:bg-[#b87528] text-white font-extrabold text-xs shadow-md shadow-[#cf8730]/25 transition-all min-h-[44px] cursor-pointer active:scale-95 shrink-0"
+            >
+              <Plus className="w-4 h-4 text-white" />
+              + Add Reel Entry
+            </button>
+          )}
         </div>
 
         {/* 4-Card Mini KPI Summary Bar (design.md §4.5) */}

@@ -6,6 +6,7 @@ import { Zap, Save, CheckCircle2 } from 'lucide-react';
 
 export const ElectricityModule = ({ state }) => {
   const selectedDate = state.selectedDate;
+  const isReadOnly = state?.activeRole === 'guest_viewer' || state?.users?.find(u => u.id === state.activeUserId)?.isReadOnly;
   const elecLog = state.electricityLogs[selectedDate] || { dailyUnitsKwh: '' };
 
   const machineLog = state.machineLogs[selectedDate] || { rolls: [] };
@@ -24,6 +25,7 @@ export const ElectricityModule = ({ state }) => {
 
   const handleSaveElectricity = (e) => {
     e.preventDefault();
+    if (isReadOnly) return;
     store.saveElectricityLog(selectedDate, {
       dailyUnitsKwh: Number(unitsKwh)
     });
@@ -72,10 +74,16 @@ export const ElectricityModule = ({ state }) => {
             <input
               type="number"
               required
+              disabled={isReadOnly}
+              readOnly={isReadOnly}
               placeholder="e.g. 5000"
               value={unitsKwh}
               onChange={e => setUnitsKwh(e.target.value)}
-              className="w-full p-3 bg-[#F5F6FA] border border-[#EEF0F5] rounded-xl text-xs font-bold focus:outline-none"
+              className={`w-full p-3 border rounded-xl text-xs font-bold focus:outline-none ${
+                isReadOnly
+                  ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed'
+                  : 'bg-[#F5F6FA] border-[#EEF0F5] text-slate-900'
+              }`}
             />
           </div>
 
@@ -93,13 +101,20 @@ export const ElectricityModule = ({ state }) => {
           </div>
 
           <div className="flex justify-end">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-bold text-xs shadow-lg shadow-[#cf8730]/25 transition-all cursor-pointer active:scale-95"
-            >
-              <Save className="w-4 h-4 text-white" />
-              Save Electricity Log
-            </button>
+            {isReadOnly ? (
+              <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-xs font-extrabold shrink-0">
+                <Zap className="w-4 h-4 text-amber-600" />
+                <span>🔒 Electricity Log Saved (Read-Only Mode)</span>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-bold text-xs shadow-lg shadow-[#cf8730]/25 transition-all cursor-pointer active:scale-95"
+              >
+                <Save className="w-4 h-4 text-white" />
+                Save Electricity Log
+              </button>
+            )}
           </div>
         </form>
       </div>

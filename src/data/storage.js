@@ -17,8 +17,12 @@ import {
 } from './initialSeedData';
 import { recalculateDailyDeductions } from '../engine/productionEngine';
 
-const STORAGE_KEY = 'SAHEB_PAPER_DEMO2_STATE_LIVE_V10';
+const STORAGE_KEY = 'SAHEB_PAPER_DEMO2_STATE_LIVE_V14';
 const FALLBACK_KEYS = [
+  'SAHEB_PAPER_DEMO2_STATE_LIVE_V14',
+  'SAHEB_PAPER_DEMO2_STATE_LIVE_V13',
+  'SAHEB_PAPER_DEMO2_STATE_LIVE_V12',
+  'SAHEB_PAPER_DEMO2_STATE_LIVE_V11',
   'SAHEB_PAPER_DEMO2_STATE_LIVE_V10',
   'SAHEB_PAPER_DEMO2_STATE_LIVE_V9',
   'SAHEB_PAPER_DEMO2_STATE_LIVE_V8',
@@ -194,6 +198,29 @@ class Store {
         });
         const mergedReels = Array.from(reelMap.values());
 
+        const seedUserIds = new Set(INITIAL_USERS.map(u => u.id));
+        const savedUsers = (parsed.users && Array.isArray(parsed.users))
+          ? parsed.users.filter(u => seedUserIds.has(u.id))
+          : [];
+        const userMap = new Map();
+        savedUsers.forEach(u => { if (u && u.id) userMap.set(u.id, u); });
+        INITIAL_USERS.forEach(seedUser => {
+          const existing = userMap.get(seedUser.id);
+          if (existing) {
+            userMap.set(seedUser.id, {
+              ...existing,
+              name: seedUser.name,
+              roleId: seedUser.roleId === 'machine' ? 'plant_manager' : seedUser.roleId,
+              roleName: seedUser.roleName === 'Machine Operator' ? 'Plant Manager' : seedUser.roleName,
+              workerId: seedUser.workerId,
+              username: seedUser.username
+            });
+          } else {
+            userMap.set(seedUser.id, seedUser);
+          }
+        });
+        const mergedUsers = Array.from(userMap.values());
+
         return sanitizeSizes({
           ...getInitialState(),
           ...parsed,
@@ -201,7 +228,7 @@ class Store {
           auditLogs: mergedAuditLogs,
           selectedDate: validDate,
           timeRange: validRange,
-          users: (parsed.users && parsed.users.length > 0) ? parsed.users : JSON.parse(JSON.stringify(INITIAL_USERS))
+          users: mergedUsers
         });
       }
     } catch (e) {
@@ -403,8 +430,20 @@ class Store {
     this.saveState();
   }
 
+  isReadOnlyUser() {
+    const activeUser = (this.state.users || []).find(u => u.id === this.state.activeUserId);
+    return this.state.activeRole === 'guest_viewer' || activeUser?.isReadOnly === true || activeUser?.roleId === 'guest_viewer';
+  }
+
   // Rule 1: Inward Entry
   addInwardEntry(entry) {
+    if (this.isReadOnlyUser()) {
+      this.showToast({
+        title: '🔒 Read-Only Guest Mode: Action restricted. Guest cannot add or edit stock data.',
+        type: 'alert'
+      });
+      return;
+    }
     const newEntry = {
       id: `inw-${Date.now()}`,
       date: entry.date || this.state.selectedDate,
@@ -422,6 +461,10 @@ class Store {
 
   // Pulp Mill Formula & Chemical Rates (Rule 2 & 3 trigger)
   savePulpMillLog(date, wastePaperMix, chemicalRates, downtimeLog) {
+    if (this.isReadOnlyUser()) {
+      this.showToast({ title: '🔒 Read-Only Guest Mode: Cannot save or edit Pulp Mill logs.', type: 'alert' });
+      return;
+    }
     if (!this.state.pulpMillLogs[date]) {
       this.state.pulpMillLogs[date] = { wastePaperMix: {}, chemicalRates: {}, downtimeLogs: [] };
     }
@@ -438,6 +481,10 @@ class Store {
 
   // Machine Roll Entry (Rule 4, 2, 3 trigger)
   addMachineRoll(date, rollData) {
+    if (this.isReadOnlyUser()) {
+      this.showToast({ title: '🔒 Read-Only Guest Mode: Cannot add machine rolls.', type: 'alert' });
+      return;
+    }
     if (!this.state.machineLogs[date]) {
       this.state.machineLogs[date] = { rolls: [], chemicalRates: {}, runningTime: { startTime: '06:00', offTime: '22:00', downtimes: [] } };
     }
@@ -762,8 +809,8 @@ class Store {
       name: userData.name,
       username: userData.username,
       password: userData.password,
-      roleId: userData.roleId || 'machine',
-      roleName: userData.roleName || 'Machine Operator',
+      roleId: userData.roleId || 'plant_manager',
+      roleName: userData.roleName || 'Plant Manager',
       email: userData.email || '',
       phone: userData.phone || '',
       status: userData.status || 'active',

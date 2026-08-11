@@ -534,11 +534,18 @@ export const TopBar = ({ activeRole, selectedDate, title, state, onSelectModule,
     <>
       <header className="sticky top-0 z-30 w-full bg-white dark:bg-[#12162B] border-b border-[#EEF0F5] dark:border-[#222943] text-slate-800 dark:text-white h-14 sm:h-16 flex items-center justify-between px-3 sm:px-6 shadow-xs font-sans m-0 rounded-none shrink-0">
         {/* Title & Greeting */}
-        <div className="flex items-center gap-2 truncate">
+        <div className="flex items-center gap-3 truncate">
           <div>
             <h2 className="text-sm sm:text-base font-bold text-[#161B26] dark:text-white truncate">{title || 'Dashboard'}</h2>
             <p className="text-[11px] text-[#8A8FA3] hidden sm:block">Saheb Paper Mill &bull; Unit 1 (Tissue Line)</p>
           </div>
+
+          {(activeUser?.roleId === 'guest_viewer' || activeUser?.isReadOnly) && (
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-[#cf8730] dark:text-amber-400 font-extrabold text-xs shadow-xs animate-in fade-in">
+              <Shield className="w-3.5 h-3.5 text-[#cf8730]" />
+              <span>🔒 GUEST READ-ONLY MODE</span>
+            </div>
+          )}
         </div>
 
         {/* Right Actions Controls */}
@@ -965,26 +972,44 @@ export const TopBar = ({ activeRole, selectedDate, title, state, onSelectModule,
 
                 {/* Dropdown Menu Items */}
                 {isAdmin ? (
-                  <div className="p-2 space-y-1 text-xs font-semibold text-slate-700">
+                  <div className="p-2 space-y-2 text-xs font-semibold text-slate-700">
                     <button
                       onClick={() => {
                         setShowProfileMenu(false);
                         setIsUserMgmtOpen(true);
                       }}
-                      className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#f4e7d7]/70 text-[#cf8730] border border-[#e2cbb6] hover:bg-[#cf8730] hover:text-white transition-all group font-bold shadow-xs cursor-pointer"
+                      className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#cf8730] text-white hover:bg-[#b57324] transition-all group font-bold shadow-xs cursor-pointer active:scale-95"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="p-1.5 rounded-lg bg-[#cf8730]/15 group-hover:bg-white/20 text-[#cf8730] group-hover:text-white">
+                        <div className="p-1.5 rounded-lg bg-white/20 text-white">
+                          <Shield className="w-4 h-4" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-extrabold">🔒 Roles & Permissions Matrix</p>
+                          <p className="text-[10px] text-white/80 font-normal">Manage 7 Worker Roles & Shift Substitutes</p>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-md bg-white text-[#cf8730] text-[9px] font-black">
+                        ADMIN
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        setIsUserMgmtOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#F5F6FA] text-slate-700 hover:bg-slate-200 transition-all group font-bold shadow-2xs cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1.5 rounded-lg bg-slate-200 text-slate-700">
                           <Users className="w-4 h-4" />
                         </div>
                         <div className="text-left">
-                          <p className="text-xs font-extrabold">User Management</p>
-                          <p className="text-[10px] text-slate-500 group-hover:text-white/80 font-normal">Manage Workers & Passwords</p>
+                          <p className="text-xs font-extrabold">Factory Workers Directory</p>
+                          <p className="text-[10px] text-slate-500 font-normal">Manage Passwords & Badges ({users.length} Workers)</p>
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded-md bg-[#cf8730] text-white group-hover:bg-white group-hover:text-[#cf8730] text-[9px] font-extrabold">
-                        ADMIN
-                      </span>
                     </button>
                   </div>
                 ) : (

@@ -28,3 +28,14 @@ dist-ssr
 # Electron build output
 dist-electron
 *.zip
+*.exe
+
+# Android / Capacitor build files
+android/.gradle_user_home
+android/.gradle
+android/build
+android/app/build
+android/local.properties
+android/capacitor-cordova-android-plugins
+*.apk
+*.aab

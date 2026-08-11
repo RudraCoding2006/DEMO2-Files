@@ -5,6 +5,7 @@ import { store } from '../../data/storage';
 import { Wrench, Plus } from 'lucide-react';
 
 export const StoreModule = ({ state }) => {
+  const isReadOnly = state?.activeRole === 'guest_viewer' || state?.users?.find(u => u.id === state.activeUserId)?.isReadOnly;
   const [activeTab, setActiveTab] = useState('bearing');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -85,11 +86,21 @@ export const StoreModule = ({ state }) => {
           </div>
 
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-bold text-xs transition-all shadow-md shadow-[#cf8730]/20 cursor-pointer active:scale-95 shrink-0"
+            type="button"
+            disabled={isReadOnly}
+            onClick={() => {
+              if (isReadOnly) return;
+              setIsModalOpen(true);
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-bold text-xs transition-all shadow-md shrink-0 ${
+              isReadOnly
+                ? 'bg-[#cf8730]/60 cursor-not-allowed opacity-75'
+                : 'bg-[#cf8730] hover:bg-[#b57324] active:scale-95 cursor-pointer shadow-[#cf8730]/20'
+            }`}
+            title={isReadOnly ? "🔒 Read-Only Guest Mode: Action disabled for Viewers" : "Add New Spare"}
           >
             <Plus className="w-4 h-4 text-white" />
-            Add New Spare
+            + Add New Spare
           </button>
         </div>
 

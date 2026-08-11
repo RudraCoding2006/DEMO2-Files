@@ -6,6 +6,7 @@ import { Droplets, Save, CheckCircle2 } from 'lucide-react';
 
 export const EtpModule = ({ state }) => {
   const selectedDate = state.selectedDate;
+  const isReadOnly = state?.activeRole === 'guest_viewer' || state?.users?.find(u => u.id === state.activeUserId)?.isReadOnly;
   const etpLog = state.etpLogs[selectedDate] || { flockLiquidLtr: '', flockMasterKg: '' };
 
   const [flockLiq, setFlockLiq] = useState(etpLog.flockLiquidLtr || '');
@@ -19,6 +20,7 @@ export const EtpModule = ({ state }) => {
 
   const handleSaveEtp = (e) => {
     e.preventDefault();
+    if (isReadOnly) return;
     store.saveEtpLog(selectedDate, {
       flockLiquidLtr: Number(flockLiq),
       flockMasterKg: Number(flockMaster)
@@ -69,10 +71,16 @@ export const EtpModule = ({ state }) => {
               <input
                 type="number"
                 required
+                disabled={isReadOnly}
+                readOnly={isReadOnly}
                 placeholder="e.g. 45"
                 value={flockLiq}
                 onChange={e => setFlockLiq(e.target.value)}
-                className="w-full p-3 bg-[#F5F6FA] border border-[#EEF0F5] rounded-xl text-xs font-bold focus:outline-none"
+                className={`w-full p-3 border rounded-xl text-xs font-bold focus:outline-none ${
+                  isReadOnly
+                    ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed'
+                    : 'bg-[#F5F6FA] border-[#EEF0F5] text-slate-900'
+                }`}
               />
             </div>
             <div>
@@ -80,22 +88,35 @@ export const EtpModule = ({ state }) => {
               <input
                 type="number"
                 required
+                disabled={isReadOnly}
+                readOnly={isReadOnly}
                 placeholder="e.g. 30"
                 value={flockMaster}
                 onChange={e => setFlockMaster(e.target.value)}
-                className="w-full p-3 bg-[#F5F6FA] border border-[#EEF0F5] rounded-xl text-xs font-bold focus:outline-none"
+                className={`w-full p-3 border rounded-xl text-xs font-bold focus:outline-none ${
+                  isReadOnly
+                    ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed'
+                    : 'bg-[#F5F6FA] border-[#EEF0F5] text-slate-900'
+                }`}
               />
             </div>
           </div>
 
           <div className="flex justify-end">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-bold text-xs shadow-lg shadow-[#cf8730]/25 transition-all cursor-pointer active:scale-95"
-            >
-              <Save className="w-4 h-4 text-white" />
-              Save ETP Log & Deduct Stock
-            </button>
+            {isReadOnly ? (
+              <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-xs font-extrabold shrink-0">
+                <Droplets className="w-4 h-4 text-amber-600" />
+                <span>🔒 ETP Log Saved (Read-Only Mode)</span>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-bold text-xs shadow-lg shadow-[#cf8730]/25 transition-all cursor-pointer active:scale-95"
+              >
+                <Save className="w-4 h-4 text-white" />
+                Save ETP Log & Deduct Stock
+              </button>
+            )}
           </div>
         </form>
       </div>

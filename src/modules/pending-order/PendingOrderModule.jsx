@@ -43,6 +43,8 @@ export const PendingOrderModule = ({ state }) => {
     });
   };
 
+  const isReadOnly = state?.activeRole === 'guest_viewer' || state?.users?.find(u => u.id === state.activeUserId)?.isReadOnly;
+
   return (
     <div className="space-y-6">
       {/* Header Cards */}
@@ -50,7 +52,7 @@ export const PendingOrderModule = ({ state }) => {
         <StatCard
           variant="hero"
           title="Total Pending Orders"
-          value={`${orders.filter(o => o.status === 'pending' || o.status === 'partial').length} Orders`}
+          value={`${orders.length} Orders`}
           subtitle="Awaiting Full Dispatch"
           icon={ClipboardList}
         />
@@ -78,8 +80,17 @@ export const PendingOrderModule = ({ state }) => {
 
           <button
             type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl bg-[#cf8730] text-white hover:bg-[#b87e47] font-extrabold text-xs shadow-md shadow-[#cf8730]/25 transition-all active:scale-95 cursor-pointer w-full sm:w-auto min-h-[44px]"
+            disabled={isReadOnly}
+            onClick={() => {
+              if (isReadOnly) return;
+              setIsModalOpen(true);
+            }}
+            className={`flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl text-white font-extrabold text-xs shadow-md transition-all w-full sm:w-auto min-h-[44px] ${
+              isReadOnly
+                ? 'bg-[#cf8730]/60 cursor-not-allowed opacity-75'
+                : 'bg-[#cf8730] hover:bg-[#b87e47] active:scale-95 cursor-pointer shadow-[#cf8730]/25'
+            }`}
+            title={isReadOnly ? "🔒 Read-Only Guest Mode: Action disabled for Viewers" : "Add New Customer Order"}
           >
             <Plus className="w-4 h-4" />
             <span>+ Add New Customer Order</span>

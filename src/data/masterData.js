@@ -60,13 +60,10 @@ export const PARTIES = [
 ];
 
 export const USER_ROLES = [
-  { id: 'admin', name: 'Admin / Management' },
-  { id: 'store_keeper', name: 'Store Keeper' },
-  { id: 'pulp_mill', name: 'Pulp Mill Operator' },
-  { id: 'machine', name: 'Machine Operator' },
-  { id: 'rewinder', name: 'Rewinder Operator' },
-  { id: 'boiler', name: 'Boiler Operator' },
-  { id: 'etp', name: 'ETP Operator' },
-  { id: 'electricity', name: 'Electricity In-Charge' },
-  { id: 'dispatch', name: 'Dispatch Manager' },
+  { id: 'admin', name: 'Admin / Owner' },
+  { id: 'plant_manager', name: 'Plant Manager' },
+  { id: 'store_keeper', name: 'Shopper (Store & Procurement)' },
+  { id: 'dispatch', name: 'Dispatcher' },
+  { id: 'pulp_mill', name: 'Pulper (Pulp Mill Operator)' },
+  { id: 'guest_viewer', name: 'Guest / Read-Only Viewer' }
 ];

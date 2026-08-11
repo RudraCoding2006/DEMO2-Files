@@ -8,6 +8,7 @@ import { Cog, Plus, Trash2, Clock, Save, Zap, AlertCircle, MoreVertical, Filter,
 
 export const MachineModule = ({ state }) => {
   const selectedDate = state.selectedDate;
+  const isReadOnly = state?.activeRole === 'guest_viewer' || state?.users?.find(u => u.id === state.activeUserId)?.isReadOnly;
   const machineLog = state.machineLogs[selectedDate] || { rolls: [], chemicalRates: {}, runningTime: { startTime: '06:00', offTime: '23:00', downtimes: [] } };
 
   const rolls = machineLog.rolls || [];
@@ -192,12 +193,19 @@ export const MachineModule = ({ state }) => {
               <span>Saves roll weight & updates raw paper + chemical stock automatically (Rule 2 & 3).</span>
             </div>
 
-            <button
-              type="submit"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-bold text-xs shadow-md shadow-[#cf8730]/25 transition-all min-h-[44px] shrink-0 cursor-pointer active:scale-95"
-            >
-              Record & Add Jumbo Roll
-            </button>
+            {isReadOnly ? (
+              <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-xs font-extrabold shrink-0">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <span>🔒 Read-Only Guest Mode (Add Entry Locked)</span>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#cf8730] hover:bg-[#b57324] text-white font-bold text-xs shadow-md shadow-[#cf8730]/25 transition-all min-h-[44px] shrink-0 cursor-pointer active:scale-95"
+              >
+                Record & Add Jumbo Roll
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -222,9 +230,15 @@ export const MachineModule = ({ state }) => {
                     min="0"
                     inputMode="decimal"
                     placeholder="0"
+                    disabled={isReadOnly}
+                    readOnly={isReadOnly}
                     value={ratesForm[chemName] !== undefined ? ratesForm[chemName] : ''}
                     onChange={e => setRatesForm({ ...ratesForm, [chemName]: e.target.value })}
-                    className="w-20 p-2 bg-white border border-[#EEF0F5] rounded-lg text-xs font-bold text-right focus:outline-none focus:ring-2 focus:ring-[#5B4FE9]"
+                    className={`w-20 p-2 border rounded-lg text-xs font-bold text-right focus:outline-none ${
+                      isReadOnly
+                        ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed'
+                        : 'bg-white border-[#EEF0F5] text-slate-900 focus:ring-2 focus:ring-[#cf8730]'
+                    }`}
                   />
                   <span className="text-[10px] font-semibold text-slate-400">kg/T</span>
                 </div>
@@ -246,52 +260,73 @@ export const MachineModule = ({ state }) => {
                 <label className="block text-xs font-bold text-slate-700 mb-1">Shift Start Time</label>
                 <input
                   type="time"
+                  disabled={isReadOnly}
+                  readOnly={isReadOnly}
                   value={startTime}
                   onChange={e => setStartTime(e.target.value)}
-                  className="w-full p-2.5 bg-[#F5F6FA] border border-[#EEF0F5] rounded-xl text-xs font-bold focus:outline-none"
+                  className={`w-full p-2.5 border rounded-xl text-xs font-bold focus:outline-none ${
+                    isReadOnly
+                      ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed'
+                      : 'bg-[#F5F6FA] border-[#EEF0F5] text-slate-900'
+                  }`}
                 />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Shift End Time</label>
                 <input
                   type="time"
+                  disabled={isReadOnly}
+                  readOnly={isReadOnly}
                   value={offTime}
                   onChange={e => setOffTime(e.target.value)}
-                  className="w-full p-2.5 bg-[#F5F6FA] border border-[#EEF0F5] rounded-xl text-xs font-bold focus:outline-none"
+                  className={`w-full p-2.5 border rounded-xl text-xs font-bold focus:outline-none ${
+                    isReadOnly
+                      ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed'
+                      : 'bg-[#F5F6FA] border-[#EEF0F5] text-slate-900'
+                  }`}
                 />
               </div>
             </div>
 
-            <div className="space-y-3">
-              <label className="block text-xs font-bold text-slate-700">Add Machine Breakdown / Downtime</label>
-              <div className="grid grid-cols-3 gap-2">
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  placeholder="Minutes"
-                  value={downtimeMinutes}
-                  onChange={e => setDowntimeMinutes(e.target.value)}
-                  className="p-2.5 bg-[#F5F6FA] border border-[#EEF0F5] rounded-xl text-xs font-semibold focus:outline-none"
-                />
-                <input
-                  type="text"
-                  placeholder="Downtime Cause (e.g. Felt Wash)"
-                  value={downtimeReason}
-                  onChange={e => setDowntimeReason(e.target.value)}
-                  className="col-span-2 p-2.5 bg-[#F5F6FA] border border-[#EEF0F5] rounded-xl text-xs font-semibold focus:outline-none"
-                />
+            {!isReadOnly && (
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-slate-700">Add Machine Breakdown / Downtime</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="Minutes"
+                    value={downtimeMinutes}
+                    onChange={e => setDowntimeMinutes(e.target.value)}
+                    className="p-2.5 bg-[#F5F6FA] border border-[#EEF0F5] rounded-xl text-xs font-semibold focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Downtime Cause (e.g. Felt Wash)"
+                    value={downtimeReason}
+                    onChange={e => setDowntimeReason(e.target.value)}
+                    className="col-span-2 p-2.5 bg-[#F5F6FA] border border-[#EEF0F5] rounded-xl text-xs font-semibold focus:outline-none"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex justify-end">
-            <button
-              type="submit"
-              className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-xl font-extrabold text-xs transition-all min-h-[44px] cursor-pointer active:scale-95 shrink-0"
-            >
-              <Save className="w-4 h-4 text-white" />
-              Save Chemical Rates & Shift Schedule
-            </button>
+            {isReadOnly ? (
+              <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-xs font-extrabold shrink-0">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <span>🔒 Rates & Shift Schedule Saved (Read-Only Mode)</span>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-xl font-extrabold text-xs transition-all min-h-[44px] cursor-pointer active:scale-95 shrink-0"
+              >
+                <Save className="w-4 h-4 text-white" />
+                Save Chemical Rates & Shift Schedule
+              </button>
+            )}
           </div>
         </div>
       </form>
@@ -394,13 +429,22 @@ export const MachineModule = ({ state }) => {
                     </td>
                     <td className="p-3.5 text-center relative">
                       <button
-                        onClick={() => setActiveKebabId(activeKebabId === roll.id ? null : roll.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60"
+                        disabled={isReadOnly}
+                        onClick={() => {
+                          if (isReadOnly) return;
+                          setActiveKebabId(activeKebabId === roll.id ? null : roll.id);
+                        }}
+                        className={`p-1.5 rounded-lg transition-all ${
+                          isReadOnly
+                            ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed opacity-50'
+                            : 'text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 cursor-pointer'
+                        }`}
+                        title={isReadOnly ? "🔒 Read-Only Mode: Viewers cannot modify or delete rolls" : "Actions"}
                       >
                         <MoreVertical className="w-4 h-4" />
                       </button>
 
-                      {activeKebabId === roll.id && (
+                      {activeKebabId === roll.id && !isReadOnly && (
                         <div className="absolute right-4 top-10 w-36 bg-white rounded-xl shadow-xl border border-slate-200 p-1 z-30 text-left">
                           <button
                             onClick={() => handleDeleteRoll(roll.id)}
@@ -430,8 +474,17 @@ export const MachineModule = ({ state }) => {
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-slate-400">{roll.time}</span>
                     <button
-                      onClick={() => handleDeleteRoll(roll.id)}
-                      className="p-1.5 rounded-lg text-[#F1533C] hover:bg-[#FDECEA]"
+                      disabled={isReadOnly}
+                      onClick={() => {
+                        if (isReadOnly) return;
+                        handleDeleteRoll(roll.id);
+                      }}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        isReadOnly
+                          ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed opacity-50'
+                          : 'text-[#F1533C] hover:bg-[#FDECEA] cursor-pointer'
+                      }`}
+                      title={isReadOnly ? "🔒 Read-Only Mode" : "Delete Roll"}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
