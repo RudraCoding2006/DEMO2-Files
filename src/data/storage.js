@@ -294,6 +294,12 @@ class Store {
             keepalive: true
           }).catch(() => {});
         }
+        // Async background sync to Supabase
+        import('../lib/supabaseSyncEngine.js').then(module => {
+          if (module?.syncStateToSupabase) {
+            module.syncStateToSupabase(this.state);
+          }
+        }).catch(() => {});
       }
     } catch (e) {
       console.error('Failed to save state to localStorage', e);
