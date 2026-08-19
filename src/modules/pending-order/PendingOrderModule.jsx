@@ -156,7 +156,8 @@ export const PendingOrderModule = ({ state }) => {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-[#F5F6FA] text-[#8A8FA3] uppercase tracking-wider font-semibold">
-                <th className="p-3.5 rounded-l-xl">Order Date</th>
+                <th className="p-3.5 rounded-l-xl">Order ID</th>
+                <th className="p-3.5">Order Date</th>
                 <th className="p-3.5">Customer / Party Name</th>
                 <th className="p-3.5">Product</th>
                 <th className="p-3.5">GSM / Size / Ply</th>
@@ -165,24 +166,32 @@ export const PendingOrderModule = ({ state }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {orders.map(ord => (
-                <tr key={ord.id} className="hover:bg-slate-50/60">
-                  <td className="p-3.5 font-semibold text-slate-700">{formatDateDisplay(ord.orderDate)}</td>
-                  <td className="p-3.5 font-bold text-[#161B26]">{ord.party}</td>
-                  <td className="p-3.5 font-bold text-[#cf8730]">{ord.productName}</td>
-                  <td className="p-3.5 text-slate-600">{ord.gsm} GSM | {ord.size} | {ord.ply} Ply</td>
-                  <td className="p-3.5 text-right font-extrabold text-[#161B26]">{ord.quantityKg.toLocaleString()} kg</td>
-                  <td className="p-3.5 text-center">
-                    {ord.status === 'fulfilled' ? (
-                      <StatusPill type="success" text="Fulfilled" />
-                    ) : ord.status === 'partial' ? (
-                      <StatusPill type="info" text="Partially Dispatched" />
-                    ) : (
-                      <StatusPill type="warning" text="Pending Dispatch" />
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {orders.map((ord, idx) => {
+                let displayId = ord.id;
+                if (!displayId || !displayId.startsWith('PEND_ORDER')) {
+                  const dateStr = (ord.orderDate || ord.date || '2026-08-19').replace(/-/g, '');
+                  displayId = `PEND_ORDER${dateStr}-001`;
+                }
+                return (
+                  <tr key={ord.id || idx} className="hover:bg-slate-50/60">
+                    <td className="p-3.5 font-extrabold text-[#cf8730] font-mono text-[11px] select-all">{displayId}</td>
+                    <td className="p-3.5 font-semibold text-slate-700">{formatDateDisplay(ord.orderDate)}</td>
+                    <td className="p-3.5 font-bold text-[#161B26]">{ord.party}</td>
+                    <td className="p-3.5 font-bold text-[#cf8730]">{ord.productName}</td>
+                    <td className="p-3.5 text-slate-600">{ord.gsm} GSM | {ord.size} | {ord.ply} Ply</td>
+                    <td className="p-3.5 text-right font-extrabold text-[#161B26]">{ord.quantityKg.toLocaleString()} kg</td>
+                    <td className="p-3.5 text-center">
+                      {ord.status === 'fulfilled' ? (
+                        <StatusPill type="success" text="Fulfilled" />
+                      ) : ord.status === 'partial' ? (
+                        <StatusPill type="info" text="Partially Dispatched" />
+                      ) : (
+                        <StatusPill type="warning" text="Pending Dispatch" />
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

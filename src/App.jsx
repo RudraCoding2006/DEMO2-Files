@@ -70,6 +70,8 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+const BASE_PATH = '/DEMO2-Files';
+
 const MODULE_PATHS = {
   'login': '/login',
   'dashboard': '/dashboard',
@@ -88,9 +90,13 @@ const MODULE_PATHS = {
 };
 
 const getModuleIdFromPath = (pathname) => {
-  const cleanPath = (pathname || '').toLowerCase().replace(/\/$/, '') || '/login';
+  let raw = (pathname || '').toLowerCase();
+  if (raw.startsWith('/demo2-files')) {
+    raw = raw.replace('/demo2-files', '');
+  }
+  const cleanPath = raw.replace(/\/$/, '') || '/dashboard';
   if (cleanPath === '/login') return 'login';
-  if (cleanPath === '/' || cleanPath === '/dashboard') return 'dashboard';
+  if (cleanPath === '' || cleanPath === '/' || cleanPath === '/dashboard') return 'dashboard';
   const entry = Object.entries(MODULE_PATHS).find(([id, path]) => path === cleanPath);
   return entry ? entry[0] : 'dashboard';
 };
@@ -104,25 +110,29 @@ function MainApp() {
 
   const prevUserIdRef = useRef(appState.activeUserId);
 
-  // Handle auth URL redirects (/login <-> /dashboard)
+  // Handle auth URL redirects (/DEMO2-Files/login <-> /DEMO2-Files/dashboard)
   useEffect(() => {
     if (!appState.isAuthenticated) {
-      if (window.location.pathname !== '/login') {
-        window.history.replaceState({ moduleId: 'login' }, '', '/login');
+      const loginPath = `${BASE_PATH}/login`;
+      if (window.location.pathname !== loginPath && window.location.pathname !== '/login') {
+        window.history.replaceState({ moduleId: 'login' }, '', loginPath);
         setActiveModuleState('login');
       }
     } else {
-      if (window.location.pathname === '/login' || activeModule === 'login') {
-        window.history.replaceState({ moduleId: 'dashboard' }, '', '/dashboard');
+      const currentMod = getModuleIdFromPath(window.location.pathname);
+      if (currentMod === 'login') {
+        const dashPath = `${BASE_PATH}/dashboard`;
+        window.history.replaceState({ moduleId: 'dashboard' }, '', dashPath);
         setActiveModuleState('dashboard');
       }
     }
-  }, [appState.isAuthenticated, activeModule]);
+  }, [appState.isAuthenticated]);
 
   // Sync state & push browser URL history on module selection
   const setActiveModule = (moduleId) => {
     setActiveModuleState(moduleId);
-    const targetPath = MODULE_PATHS[moduleId] || `/${moduleId}`;
+    const subPath = MODULE_PATHS[moduleId] || `/${moduleId}`;
+    const targetPath = `${BASE_PATH}${subPath}`;
     if (window.location.pathname !== targetPath) {
       window.history.pushState({ moduleId }, '', targetPath);
     }

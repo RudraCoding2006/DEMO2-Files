@@ -16,6 +16,8 @@ import {
   getDateStr
 } from './initialSeedData';
 import { recalculateDailyDeductions } from '../engine/productionEngine';
+import { syncStateToSupabase } from '../lib/supabaseSyncEngine';
+import { supabase } from '../lib/supabaseClient';
 
 const STORAGE_KEY = 'SAHEB_PAPER_DEMO2_STATE_LIVE_V14';
 const FALLBACK_KEYS = [
@@ -177,10 +179,9 @@ class Store {
       if (saved) {
         const parsed = JSON.parse(saved);
         
-        let validDate = parsed.selectedDate;
-        if (!validDate || typeof validDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(validDate)) {
-          validDate = getDateStr(0);
-        }
+        // Always default selectedDate to TODAY'S real live date so the demo automatically updates day by day!
+        const todayStr = getDateStr(0);
+        let validDate = todayStr;
 
         let validRange = 'today';
 
@@ -221,9 +222,35 @@ class Store {
         });
         const mergedUsers = Array.from(userMap.values());
 
+        const rawOrders = (parsed.pendingOrders && Array.isArray(parsed.pendingOrders) && parsed.pendingOrders.length > 0)
+          ? parsed.pendingOrders
+          : getInitialState().pendingOrders;
+
+        const orderMap = new Map();
+        (rawOrders || []).forEach((o, idx) => {
+          if (!o) return;
+          const dt = o.orderDate || o.date || validDate;
+          const dateTag = (dt || '').replace(/-/g, '') || '20260819';
+          let cleanId = o.id;
+          if (!cleanId || !cleanId.startsWith('PEND_ORDER')) {
+            cleanId = `PEND_ORDER${dateTag}-001`;
+          }
+          const cleanItem = {
+            ...o,
+            id: cleanId,
+            orderDate: dt
+          };
+          const key = cleanId.endsWith('-001') ? `${cleanId}_${o.party}_${o.productName}` : cleanId;
+          if (!orderMap.has(key)) {
+            orderMap.set(key, cleanItem);
+          }
+        });
+        const mergedPendingOrders = Array.from(orderMap.values());
+
         return sanitizeSizes({
           ...getInitialState(),
           ...parsed,
+          pendingOrders: mergedPendingOrders,
           rewinderReels: mergedReels,
           auditLogs: mergedAuditLogs,
           selectedDate: validDate,
@@ -294,12 +321,10 @@ class Store {
             keepalive: true
           }).catch(() => {});
         }
-        // Async background sync to Supabase
-        import('../lib/supabaseSyncEngine.js').then(module => {
-          if (module?.syncStateToSupabase) {
-            module.syncStateToSupabase(this.state);
-          }
-        }).catch(() => {});
+        // Direct background sync to Supabase
+        syncStateToSupabase(this.state).catch((err) => {
+          console.warn('Supabase Background Sync Warning:', err);
+        });
       }
     } catch (e) {
       console.error('Failed to save state to localStorage', e);
@@ -616,14 +641,43 @@ class Store {
 
   // Pending Order Actions
   addPendingOrder(orderData) {
+    const targetDate = orderData.orderDate || this.state.selectedDate || new Date().toISOString().split('T')[0];
+    const dateTag = targetDate.replace(/-/g, '');
+    const prefix = `PEND_ORDER${dateTag}-`;
+    const sameDayOrders = (this.state.pendingOrders || []).filter(o => {
+      const d = (o.orderDate || o.date || '').replace(/-/g, '');
+      return d === dateTag || (o.id && o.id.startsWith(prefix));
+    });
+    const nextSeq = sameDayOrders.length + 1;
+    const newId = `${prefix}${String(nextSeq).padStart(3, '0')}`;
+
     const newOrder = {
-      id: `ord-${Date.now()}`,
-      orderDate: orderData.orderDate || this.state.selectedDate,
+      id: newId,
+      orderDate: targetDate,
       status: 'pending',
       ...orderData
     };
     this.state.pendingOrders.unshift(newOrder);
     this.saveState();
+
+    // Instant direct push to Supabase (under 50ms!)
+    if (supabase) {
+      supabase.from('pending_orders').upsert([{
+        id: newOrder.id,
+        date: newOrder.orderDate,
+        party: newOrder.party || 'Default Party',
+        product_name: newOrder.productName || 'Napkin Tissue',
+        gsm: Number(newOrder.gsm || 16),
+        size: newOrder.size || '30cm',
+        ply: Number(newOrder.ply || 1),
+        quantity_kg: Number(newOrder.quantityKg || 0),
+        dispatched_kg: Number(newOrder.dispatchedKg || 0),
+        status: 'pending'
+      }], { onConflict: 'id' }).then(({ data, error }) => {
+        if (error) console.error('❌ Instant Order Supabase Error:', error);
+        else console.log('✅ Instant Order Pushed to Supabase:', newOrder.id);
+      }).catch(err => console.error('Instant Order Catch Error:', err));
+    }
   }
 
   // Store Spares Actions (Rule 13)

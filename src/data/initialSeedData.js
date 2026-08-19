@@ -246,8 +246,9 @@ for (let offset = -TOTAL_DAYS; offset <= 0; offset++) {
   if (dayIndex % 3 === 0 && dayIndex > 10) {
     const party = PARTIES_LIST[dayIndex % PARTIES_LIST.length];
     const prod = PRODUCTS_LIST[dayIndex % PRODUCTS_LIST.length];
+    const dateTag = (date || '').replace(/-/g, '');
     INITIAL_PENDING_ORDERS.push({
-      id: `ord-seed-${dayIndex}`,
+      id: `PEND_ORDER${dateTag}-001`,
       party,
       productName: prod.name,
       gsm: prod.gsmList[0],

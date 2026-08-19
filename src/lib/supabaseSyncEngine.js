@@ -2,37 +2,42 @@ import { supabase } from './supabaseClient';
 
 /**
  * Supabase Data Adapter for Saheb Paper Mill ERP 13 Modules
- * Maps local state models to/from Supabase PostgreSQL tables
+ * Wraps each module in an isolated try-catch block so errors in one module never block others.
  */
 
 export const syncStateToSupabase = async (state) => {
   if (!supabase) return;
 
+  // 1. Sync Users
   try {
-    // 1. Sync Users
     if (state.users && state.users.length > 0) {
       const usersPayload = state.users.map(u => ({
         id: u.id,
         name: u.name,
         username: u.username,
         password: u.password,
-        role: u.role,
-        employee_id: u.employeeId || u.employee_id || 'EMP-001',
+        role: u.roleId || u.role,
+        employee_id: u.workerId || u.employeeId || u.employee_id || 'EMP-001',
         allowed_modules: u.allowedModules || u.allowed_modules || [],
         is_read_only: Boolean(u.isReadOnly || u.is_read_only)
       }));
-      await supabase.from('users').upsert(usersPayload, { onConflict: 'id' });
+      const { error } = await supabase.from('users').upsert(usersPayload, { onConflict: 'id' });
+      if (error) console.error('Supabase Users Sync Error:', error.message);
     }
+  } catch (err) {
+    console.error('Users sync error:', err);
+  }
 
-    // 2. Sync Raw Materials
+  // 2. Sync Raw Materials
+  try {
     if (state.rawMaterials) {
       const rmPayload = [];
       Object.entries(state.rawMaterials).forEach(([catKey, items]) => {
         if (Array.isArray(items)) {
-          items.forEach(item => {
+          items.forEach((item, index) => {
             rmPayload.push({
-              id: item.id && item.id.length === 36 ? item.id : undefined,
-              date: item.date || state.selectedDate,
+              id: item.id || `rm-${catKey}-${index}-${item.date || 'today'}`,
+              date: item.date || state.selectedDate || new Date().toISOString().split('T')[0],
               category: item.category || catKey,
               item_name: item.name || item.item_name || 'Raw Material Item',
               type: item.type || 'inward',
@@ -45,13 +50,19 @@ export const syncStateToSupabase = async (state) => {
         }
       });
       if (rmPayload.length > 0) {
-        await supabase.from('raw_materials').upsert(rmPayload);
+        const { error } = await supabase.from('raw_materials').upsert(rmPayload, { onConflict: 'id' });
+        if (error) console.error('Supabase Raw Materials Sync Error:', error.message);
       }
     }
+  } catch (err) {
+    console.error('Raw Materials sync error:', err);
+  }
 
-    // 3. Sync Pulp Mill Logs
+  // 3. Sync Pulp Mill Logs
+  try {
     if (state.pulpMillLogs) {
       const pulpPayload = Object.entries(state.pulpMillLogs).map(([dt, log]) => ({
+        id: `pulp-${dt}`,
         date: dt,
         waste_paper_kg: Number(log.wastePaperKg || 0),
         caustic_soda_kg: Number(log.causticSodaKg || 0),
@@ -64,13 +75,19 @@ export const syncStateToSupabase = async (state) => {
         power_units_kwh: Number(log.powerUnitsKwh || 0)
       }));
       if (pulpPayload.length > 0) {
-        await supabase.from('pulp_mill_logs').upsert(pulpPayload, { onConflict: 'date' });
+        const { error } = await supabase.from('pulp_mill_logs').upsert(pulpPayload, { onConflict: 'date' });
+        if (error) console.error('Supabase Pulp Mill Sync Error:', error.message);
       }
     }
+  } catch (err) {
+    console.error('Pulp Mill sync error:', err);
+  }
 
-    // 4. Sync Machine Logs
+  // 4. Sync Machine Logs
+  try {
     if (state.machineLogs) {
       const machinePayload = Object.entries(state.machineLogs).map(([dt, log]) => ({
+        id: `mach-${dt}`,
         date: dt,
         shift_a_operator: log.shiftAOperator || '',
         shift_b_operator: log.shiftBOperator || '',
@@ -79,18 +96,24 @@ export const syncStateToSupabase = async (state) => {
         biocide_rate: Number(log.biocideRate || 0)
       }));
       if (machinePayload.length > 0) {
-        await supabase.from('machine_logs').upsert(machinePayload, { onConflict: 'date' });
+        const { error } = await supabase.from('machine_logs').upsert(machinePayload, { onConflict: 'date' });
+        if (error) console.error('Supabase Machine Logs Sync Error:', error.message);
       }
     }
+  } catch (err) {
+    console.error('Machine Logs sync error:', err);
+  }
 
-    // 5. Sync Rewinder Reels
+  // 5. Sync Rewinder Reels
+  try {
     if (state.rewinderReels && state.rewinderReels.length > 0) {
-      const reelsPayload = state.rewinderReels.map(r => ({
-        date: r.date || state.selectedDate,
-        reel_no: r.reelNo,
+      const reelsPayload = state.rewinderReels.map((r, idx) => ({
+        id: r.id || `reel-${r.reelNo || idx}`,
+        date: r.date || state.selectedDate || new Date().toISOString().split('T')[0],
+        reel_no: r.reelNo || `RL-${idx}`,
         running_roll_no: r.runningRollNo || '',
         running_size: r.runningSize || '',
-        product_name: r.productName,
+        product_name: r.productName || 'Napkin Tissue',
         gsm: Number(r.gsm || 16),
         size: r.size || '30cm',
         ply: Number(r.ply || 1),
@@ -99,12 +122,18 @@ export const syncStateToSupabase = async (state) => {
         weight_kg: Number(r.weightKg || 0),
         broke_kg: Number(r.brokeKg || 0)
       }));
-      await supabase.from('rewinder_reels').upsert(reelsPayload);
+      const { error } = await supabase.from('rewinder_reels').upsert(reelsPayload, { onConflict: 'id' });
+      if (error) console.error('Supabase Rewinder Reels Sync Error:', error.message);
     }
+  } catch (err) {
+    console.error('Rewinder Reels sync error:', err);
+  }
 
-    // 6. Sync Boiler Logs
+  // 6. Sync Boiler Logs
+  try {
     if (state.boilerLogs) {
       const boilerPayload = Object.entries(state.boilerLogs).map(([dt, log]) => ({
+        id: `boiler-${dt}`,
         date: dt,
         fuel_type: log.fuelType || 'Firewood',
         total_fuel_kg: Number(log.totalFuelKg || 0),
@@ -113,95 +142,143 @@ export const syncStateToSupabase = async (state) => {
         running_hours: Number(log.runningHours || 24)
       }));
       if (boilerPayload.length > 0) {
-        await supabase.from('boiler_logs').upsert(boilerPayload, { onConflict: 'date' });
+        const { error } = await supabase.from('boiler_logs').upsert(boilerPayload, { onConflict: 'date' });
+        if (error) console.error('Supabase Boiler Logs Sync Error:', error.message);
       }
     }
+  } catch (err) {
+    console.error('Boiler Logs sync error:', err);
+  }
 
-    // 7. Sync ETP Logs
+  // 7. Sync ETP Logs
+  try {
     if (state.etpLogs) {
       const etpPayload = Object.entries(state.etpLogs).map(([dt, log]) => ({
+        id: `etp-${dt}`,
         date: dt,
         flock_100_liq_ltr: Number(log.flock100LiqLtr || 0),
         flock_master_kg: Number(log.flockMasterKg || 0),
         treated_water_ltr: Number(log.treatedWaterLtr || 0)
       }));
       if (etpPayload.length > 0) {
-        await supabase.from('etp_logs').upsert(etpPayload, { onConflict: 'date' });
+        const { error } = await supabase.from('etp_logs').upsert(etpPayload, { onConflict: 'date' });
+        if (error) console.error('Supabase ETP Logs Sync Error:', error.message);
       }
     }
+  } catch (err) {
+    console.error('ETP Logs sync error:', err);
+  }
 
-    // 8. Sync Electricity Logs
+  // 8. Sync Electricity Logs
+  try {
     if (state.electricityLogs) {
       const elecPayload = Object.entries(state.electricityLogs).map(([dt, log]) => ({
+        id: `elec-${dt}`,
         date: dt,
         daily_units_kwh: Number(log.dailyUnitsKwh || 0),
         unit_per_ton: Number(log.unitPerTon || 0)
       }));
       if (elecPayload.length > 0) {
-        await supabase.from('electricity_logs').upsert(elecPayload, { onConflict: 'date' });
+        const { error } = await supabase.from('electricity_logs').upsert(elecPayload, { onConflict: 'date' });
+        if (error) console.error('Supabase Electricity Logs Sync Error:', error.message);
       }
     }
+  } catch (err) {
+    console.error('Electricity Logs sync error:', err);
+  }
 
-    // 9. Sync Pending Orders
+  // 9. Sync Pending Orders (PRIORITY MODULE!)
+  try {
     if (state.pendingOrders && state.pendingOrders.length > 0) {
-      const ordersPayload = state.pendingOrders.map(o => ({
-        date: o.date || state.selectedDate,
-        party: o.party,
-        product_name: o.productName,
-        gsm: Number(o.gsm || 16),
-        size: o.size || '30cm',
-        ply: Number(o.ply || 1),
-        quantity_kg: Number(o.quantityKg || 0),
-        dispatched_kg: Number(o.dispatchedKg || 0),
-        status: o.status || 'pending'
-      }));
-      await supabase.from('pending_orders').upsert(ordersPayload);
+      const ordersPayload = state.pendingOrders.map((o, idx) => {
+        const orderDate = o.orderDate || o.date || state.selectedDate || new Date().toISOString().split('T')[0];
+        const dateTag = (orderDate || '').replace(/-/g, '') || '20260819';
+        let cleanId = o.id;
+        if (!cleanId || !cleanId.startsWith('PEND_ORDER')) {
+          cleanId = `PEND_ORDER${dateTag}-001`;
+        }
+        return {
+          id: cleanId,
+          date: orderDate,
+          party: o.party || 'Default Party',
+          product_name: o.productName || 'Napkin Tissue',
+          gsm: Number(o.gsm || 16),
+          size: o.size || '30cm',
+          ply: Number(o.ply || 1),
+          quantity_kg: Number(o.quantityKg || 0),
+          dispatched_kg: Number(o.dispatchedKg || 0),
+          status: o.status === 'partial' || o.status === 'partially_dispatched' ? 'partial' : (o.status === 'fulfilled' ? 'fulfilled' : 'pending')
+        };
+      });
+      const { data, error } = await supabase.from('pending_orders').upsert(ordersPayload, { onConflict: 'id' }).select();
+      if (error) {
+        console.error('❌ Supabase Pending Orders Sync Error:', error.message);
+      } else {
+        console.log(`✅ Supabase Pending Orders Synced (${ordersPayload.length} rows)`);
+      }
     }
+  } catch (err) {
+    console.error('Pending Orders sync error:', err);
+  }
 
-    // 10. Sync Dispatches
+  // 10. Sync Dispatches
+  try {
     if (state.dispatches && state.dispatches.length > 0) {
-      const dispatchesPayload = state.dispatches.map(d => ({
-        dispatch_no: d.dispatchNo,
-        date: d.date || state.selectedDate,
-        party: d.party,
-        vehicle_no: d.vehicleNo,
-        product_name: d.productName,
+      const dispatchesPayload = state.dispatches.map((d, idx) => ({
+        id: d.id || `disp-${d.dispatchNo || idx}`,
+        dispatch_no: d.dispatchNo || `DSP-${idx}`,
+        date: d.date || state.selectedDate || new Date().toISOString().split('T')[0],
+        party: d.party || 'Default Party',
+        vehicle_no: d.vehicleNo || 'GJ-05-8821',
+        product_name: d.productName || 'Napkin Tissue',
         quantity_kg: Number(d.quantityKg || 0),
         reels_count: Number(d.reelsCount || 1),
         order_id: d.orderId || null
       }));
-      await supabase.from('dispatches').upsert(dispatchesPayload, { onConflict: 'dispatch_no' });
+      const { error } = await supabase.from('dispatches').upsert(dispatchesPayload, { onConflict: 'id' });
+      if (error) console.error('Supabase Dispatches Sync Error:', error.message);
     }
+  } catch (err) {
+    console.error('Dispatches sync error:', err);
+  }
 
-    // 11. Sync Store Items
+  // 11. Sync Store Items
+  try {
     if (state.storeItems && state.storeItems.length > 0) {
-      const storePayload = state.storeItems.map(s => ({
+      const storePayload = state.storeItems.map((s, idx) => ({
+        id: s.id || `st-${s.category || 'sp'}-${idx}`,
         category: s.category || 'bearing',
         number: s.number || '',
         size: s.size || '',
         item_group: s.group || s.item_group || '',
-        name: s.name,
+        name: s.name || 'Store Item',
         pcs: Number(s.pcs || 0),
         use_for: s.useFor || s.use_for || ''
       }));
-      await supabase.from('store_items').upsert(storePayload);
+      const { error } = await supabase.from('store_items').upsert(storePayload, { onConflict: 'id' });
+      if (error) console.error('Supabase Store Items Sync Error:', error.message);
     }
+  } catch (err) {
+    console.error('Store Items sync error:', err);
+  }
 
-    // 12. Sync Audit Logs
+  // 12. Sync Audit Logs
+  try {
     if (state.auditLogs && state.auditLogs.length > 0) {
-      const auditPayload = state.auditLogs.map(a => ({
+      const auditPayload = state.auditLogs.map((a, idx) => ({
+        id: a.id || `audit-${idx}`,
         timestamp: a.timestamp || new Date().toISOString(),
         user_id: a.userId || a.user_id || 'usr-1',
         user_name: a.userName || a.user_name || 'Admin',
-        role: a.role || 'admin',
+        role: a.role || a.roleName || 'admin',
         action: a.action || 'system_update',
         module: a.module || 'system',
         details: a.details || ''
       }));
-      await supabase.from('audit_logs').upsert(auditPayload);
+      const { error } = await supabase.from('audit_logs').upsert(auditPayload, { onConflict: 'id' });
+      if (error) console.error('Supabase Audit Logs Sync Error:', error.message);
     }
-
   } catch (err) {
-    console.warn('Supabase sync background notice:', err.message);
+    console.error('Audit Logs sync error:', err);
   }
 };

@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SAHEB PAPER MILL ERP - SUPABASE COMPLETE 13 MODULES DATABASE SCHEMA
+-- SAHEB PAPER MILL ERP - SUPABASE COMPLETE 13 MODULES DATABASE SCHEMA (V2)
 -- Execute this SQL in your Supabase SQL Editor: https://app.supabase.com
 -- ==============================================================================
 
@@ -25,11 +25,11 @@ CREATE TABLE IF NOT EXISTS public.users (
 -- 2. RAW MATERIALS INWARD & CONSUMPTION TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.raw_materials (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
-  category TEXT NOT NULL, -- 'Waste Paper', 'Chemical', 'Fuel', 'Water'
+  category TEXT NOT NULL,
   item_name TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('inward', 'consumption')),
+  type TEXT NOT NULL,
   quantity_kg NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
   vehicle_no TEXT DEFAULT '',
   supplier_party TEXT DEFAULT '',
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.raw_materials (
 -- 3. PULP MILL DAILY LOGS TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.pulp_mill_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   date DATE UNIQUE NOT NULL DEFAULT CURRENT_DATE,
   waste_paper_kg NUMERIC(12, 2) DEFAULT 0.00,
   caustic_soda_kg NUMERIC(12, 2) DEFAULT 0.00,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS public.pulp_mill_logs (
 -- 4. PLANT MANAGER / PAPER MACHINE LOGS TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.machine_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   date DATE UNIQUE NOT NULL DEFAULT CURRENT_DATE,
   shift_a_operator TEXT DEFAULT '',
   shift_b_operator TEXT DEFAULT '',
@@ -73,10 +73,10 @@ CREATE TABLE IF NOT EXISTS public.machine_logs (
 -- 5. JUMBO ROLLS PRODUCTION TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.jumbo_rolls (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   roll_no TEXT NOT NULL,
-  shift TEXT NOT NULL CHECK (shift IN ('A', 'B', 'C')),
+  shift TEXT NOT NULL,
   gsm NUMERIC(6, 2) NOT NULL,
   size_mm NUMERIC(8, 2) NOT NULL,
   weight_kg NUMERIC(12, 2) NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS public.jumbo_rolls (
 -- 6. REWINDER FINISHED REELS TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.rewinder_reels (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   reel_no TEXT NOT NULL,
   running_roll_no TEXT DEFAULT '',
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS public.rewinder_reels (
 -- 7. BOILER HOUSE LOGS TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.boiler_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   date DATE UNIQUE NOT NULL DEFAULT CURRENT_DATE,
   fuel_type TEXT NOT NULL DEFAULT 'Firewood',
   total_fuel_kg NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS public.boiler_logs (
 -- 8. ETP (EFFLUENT TREATMENT PLANT) LOGS TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.etp_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   date DATE UNIQUE NOT NULL DEFAULT CURRENT_DATE,
   flock_100_liq_ltr NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
   flock_master_kg NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS public.etp_logs (
 -- 9. ELECTRICITY CONSUMPTION LOGS TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.electricity_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   date DATE UNIQUE NOT NULL DEFAULT CURRENT_DATE,
   daily_units_kwh NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
   unit_per_ton NUMERIC(8, 2) DEFAULT 0.00,
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS public.electricity_logs (
 -- 10. PENDING CUSTOMER ORDERS TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.pending_orders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   party TEXT NOT NULL,
   product_name TEXT NOT NULL,
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS public.pending_orders (
   ply INT NOT NULL DEFAULT 1,
   quantity_kg NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
   dispatched_kg NUMERIC(12, 2) DEFAULT 0.00,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'partial', 'fulfilled')),
+  status TEXT NOT NULL DEFAULT 'pending',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -164,8 +164,8 @@ CREATE TABLE IF NOT EXISTS public.pending_orders (
 -- 11. DISPATCH GATE PASSES TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.dispatches (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  dispatch_no TEXT UNIQUE NOT NULL,
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
+  dispatch_no TEXT NOT NULL,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   party TEXT NOT NULL,
   vehicle_no TEXT NOT NULL,
@@ -180,8 +180,8 @@ CREATE TABLE IF NOT EXISTS public.dispatches (
 -- 12. STORE SPARES INVENTORY TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.store_items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  category TEXT NOT NULL CHECK (category IN ('bearing', 'v_belt', 'other')),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
+  category TEXT NOT NULL,
   number TEXT DEFAULT '',
   size TEXT DEFAULT '',
   item_group TEXT DEFAULT '',
@@ -195,7 +195,7 @@ CREATE TABLE IF NOT EXISTS public.store_items (
 -- 13. AUDIT & SYSTEM ACTIVITY LOGS TABLE
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.audit_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   user_id TEXT NOT NULL,
   user_name TEXT NOT NULL,
